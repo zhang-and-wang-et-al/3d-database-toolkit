@@ -1,0 +1,6 @@
+# Everything here is optional - the tool also runs on the plain Python standard library.
+# The launchers / setup_env.py install these into a private .venv folder next to the tool.
+
+Pillow>=9.0        # shows the JPEG previews inside the GUI
+numpy>=1.21        # scene readers (scenekit, used by the Blender importers) and the assimp-py converter below
+assimp-py>=1.1     # reads ~40 rarer formats (ms3d, b3d, cob, lxo, md3, ifc, binary .x, ...) without extra installs

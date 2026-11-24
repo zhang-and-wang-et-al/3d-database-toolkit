@@ -1,0 +1,4 @@
+meshoptimizer v1.3
+source: meshoptimizer-1.3 (https://github.com/zeux/meshoptimizer/archive/refs/tags/v1.3.zip)
+built: 2026-10-22
+sha256: 0E6EB9A22F87CA00CF39349F2B0A2BFE3AC01F1FA83D9E3381B4D3099D2203C8

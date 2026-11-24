@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>SceneKit</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="StbImageSharp" Version="2.30.16" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- R3-C10: built-in profiles (read-only); user profiles live in %APPDATA%\SceneInspector\profiles -->
+    <EmbeddedResource Include="Profiles\*.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="SceneKit.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- meshoptimizer (MIT), built by tools/build_meshoptimizer.ps1; copied next to every exe / test dll that references SceneKit -->
+    <None Include="native\win-x64\meshoptimizer.dll" Link="meshoptimizer.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="native\win-x64\LICENSE.md" Link="meshoptimizer.LICENSE.md" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+</Project>

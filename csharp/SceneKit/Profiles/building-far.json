@@ -1,0 +1,13 @@
+{
+  "name": "Building far",
+  "version": 1,
+  "class": "buildings",
+  "use": "far LOD",
+  "description": "A building seen from far becomes one closed hull with one 512 px baked texture: one draw call, 5 % of the triangles. Rooms and other insides nobody can see are removed first.",
+  "select_hint": "Select the buildings one by one, not the terrain.",
+  "pixel_error": 3,
+  "passes": {
+    "remove_occluded": {},
+    "replace_proxy": { "ratio": 0.05, "texture": 512 }
+  }
+}

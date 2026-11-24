@@ -1,0 +1,305 @@
+﻿<Window x:Class="SceneInspector.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:SceneInspector"
+        xmlns:panels="clr-namespace:SceneInspector.Panels"
+        Title="Scene Inspector" MinWidth="900" MinHeight="560"
+        Background="{DynamicResource Window}" Foreground="{DynamicResource Text}"
+        FontFamily="{DynamicResource Font.Ui}" FontSize="{DynamicResource Font.Body}"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
+        Closing="OnClosing">
+    <Window.InputBindings>
+        <KeyBinding Key="Z" Modifiers="Control" Command="{x:Static local:MainWindow.UndoCommand}" />
+        <KeyBinding Key="Y" Modifiers="Control" Command="{x:Static local:MainWindow.RedoCommand}" />
+        <KeyBinding Key="Z" Modifiers="Control+Shift" Command="{x:Static local:MainWindow.RedoCommand}" />
+        <KeyBinding Key="O" Modifiers="Control" Command="{x:Static local:MainWindow.OpenCommand}" />
+        <KeyBinding Key="S" Modifiers="Control" Command="{x:Static local:MainWindow.SaveCommand}" />
+        <KeyBinding Key="S" Modifiers="Control+Shift" Command="{x:Static local:MainWindow.SaveAsCommand}" />
+        <KeyBinding Key="F5" Command="{x:Static local:MainWindow.RunCommand}" />
+        <KeyBinding Key="F1" Command="{x:Static local:MainWindow.HelpCommand}" />
+        <KeyBinding Key="F" Modifiers="Control" Command="{x:Static local:MainWindow.FilterCommand}" />
+        <KeyBinding Key="D1" Modifiers="Control" Command="{x:Static local:MainWindow.TabCommand}" CommandParameter="0" />
+        <KeyBinding Key="D2" Modifiers="Control" Command="{x:Static local:MainWindow.TabCommand}" CommandParameter="1" />
+        <KeyBinding Key="D3" Modifiers="Control" Command="{x:Static local:MainWindow.TabCommand}" CommandParameter="2" />
+        <KeyBinding Key="D4" Modifiers="Control" Command="{x:Static local:MainWindow.TabCommand}" CommandParameter="3" />
+        <KeyBinding Key="D5" Modifiers="Control" Command="{x:Static local:MainWindow.TabCommand}" CommandParameter="4" />
+    </Window.InputBindings>
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static local:MainWindow.UndoCommand}" Executed="OnUndo" CanExecute="CanUndo" />
+        <CommandBinding Command="{x:Static local:MainWindow.RedoCommand}" Executed="OnRedo" CanExecute="CanRedo" />
+        <CommandBinding Command="{x:Static local:MainWindow.OpenCommand}" Executed="OnOpen" CanExecute="CanIdle" />
+        <CommandBinding Command="{x:Static local:MainWindow.ReloadCommand}" Executed="OnReload" CanExecute="CanScene" />
+        <CommandBinding Command="{x:Static local:MainWindow.SaveCommand}" Executed="OnSave" CanExecute="CanScene" />
+        <CommandBinding Command="{x:Static local:MainWindow.SaveAsCommand}" Executed="OnSaveAs" CanExecute="CanScene" />
+        <CommandBinding Command="{x:Static local:MainWindow.ExportCommand}" Executed="OnExportReport" CanExecute="CanScene" />
+        <CommandBinding Command="{x:Static local:MainWindow.RunCommand}" Executed="OnRunPasses" CanExecute="CanRun" />
+        <CommandBinding Command="{x:Static local:MainWindow.FilterCommand}" Executed="OnFocusFilter" />
+        <CommandBinding Command="{x:Static local:MainWindow.TabCommand}" Executed="OnTabShortcut" />
+        <CommandBinding Command="{x:Static local:MainWindow.HelpCommand}" Executed="OnHelp" />
+    </Window.CommandBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ================================================================ toolbar -->
+        <Border Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Border}" BorderThickness="0,0,0,1" Padding="8,6">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE838;" Content="Open" Command="{x:Static local:MainWindow.OpenCommand}"
+                            ToolTip="Open a scene (Ctrl+O)" Margin="0" />
+                    <Button x:Name="OpenMenuButton" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE70D;" Padding="6,4" Margin="0,0,4,0"
+                            Click="OnOpenMenu" ToolTip="Load options, reload">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open…" InputGestureText="Ctrl+O" Command="{x:Static local:MainWindow.OpenCommand}">
+                                    <MenuItem.Icon><TextBlock Text="&#xE838;" /></MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Reload from Disk (Discard Changes)" Command="{x:Static local:MainWindow.ReloadCommand}">
+                                    <MenuItem.Icon><TextBlock Text="&#xE72C;" /></MenuItem.Icon>
+                                </MenuItem>
+                                <Separator />
+                                <MenuItem x:Name="FollowExt" Header="Load External References" IsCheckable="True" IsChecked="True" StaysOpenOnClick="True"
+                                          ToolTip="Follow ProxyNode / external file references when opening" />
+                                <MenuItem x:Name="FollowPaged" Header="Load PagedLOD Children" IsCheckable="True" StaysOpenOnClick="True"
+                                          ToolTip="Also read the files PagedLOD nodes would page in" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <Button x:Name="SaveButton" AutomationProperties.AutomationId="SaveButton" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE74E;"
+                            Content="Save Over Opened Database…" Command="{x:Static local:MainWindow.SaveCommand}"
+                            ToolTip="Overwrite the opened files after backing them up (Ctrl+S)" />
+                    <Button x:Name="SaveCopyButton" AutomationProperties.AutomationId="SaveCopyButton" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE792;"
+                            Content="Save Copy to Folder…" Command="{x:Static local:MainWindow.SaveAsCommand}"
+                            ToolTip="Write a complete copy of the database to a folder (Ctrl+Shift+S)" />
+                    <Rectangle Width="1" Margin="6,6" Fill="{DynamicResource Border}" />
+                    <Button x:Name="UndoButton" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE7A7;" Content="Undo"
+                            Command="{x:Static local:MainWindow.UndoCommand}" ToolTip="Nothing to undo" ToolTipService.ShowOnDisabled="True" />
+                    <Button x:Name="RedoButton" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE7A6;" Content="Redo"
+                            Command="{x:Static local:MainWindow.RedoCommand}" ToolTip="Nothing to redo" ToolTipService.ShowOnDisabled="True" />
+                    <Rectangle Width="1" Margin="6,6" Fill="{DynamicResource Border}" />
+                    <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xEDE1;" Content="Export Report…"
+                            Command="{x:Static local:MainWindow.ExportCommand}" ToolTip="Write the analysis as text or JSON" />
+                    <Rectangle Width="1" Margin="6,6" Fill="{DynamicResource Border}" />
+                    <Button x:Name="ViewMenuButton" AutomationProperties.AutomationId="ViewMenuButton" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A1;"
+                            Content="View" Click="OnViewMenu" ToolTip="Put panels into their own windows (another place on the screen, a second monitor)">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Inspect in its own window" IsCheckable="True" Tag="Inspect" Click="OnViewOut" AutomationProperties.AutomationId="ViewOutInspect" />
+                                <MenuItem Header="Problems in its own window" IsCheckable="True" Tag="Problems" Click="OnViewOut" AutomationProperties.AutomationId="ViewOutProblems" />
+                                <MenuItem Header="Textures in its own window" IsCheckable="True" Tag="Textures" Click="OnViewOut" AutomationProperties.AutomationId="ViewOutTextures" />
+                                <MenuItem Header="Optimize in its own window" IsCheckable="True" Tag="Optimize" Click="OnViewOut" AutomationProperties.AutomationId="ViewOutOptimize" />
+                                <MenuItem Header="Review in its own window" IsCheckable="True" Tag="Review" Click="OnViewOut" AutomationProperties.AutomationId="ViewOutReview" />
+                                <MenuItem Header="Tree in its own window" IsCheckable="True" Tag="Tree" Click="OnViewOut" AutomationProperties.AutomationId="ViewOutTree" />
+                                <Separator />
+                                <MenuItem Header="Reset Layout" AutomationProperties.AutomationId="ViewResetLayout" Click="OnResetLayout" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </StackPanel>
+                <Button x:Name="HelpButton" AutomationProperties.AutomationId="HelpButton" DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}"
+                        Content="?" FontWeight="SemiBold" Padding="10,4" Margin="4,0,0,0" Command="{x:Static local:MainWindow.HelpCommand}"
+                        ToolTip="Help for this panel (F1)" />
+                <Button x:Name="WarningsButton" DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE7BA;"
+                        Foreground="{DynamicResource Sev.Med}" Visibility="Collapsed" Click="OnShowWarnings" ToolTip="Warnings while loading the scene" />
+            </DockPanel>
+        </Border>
+
+        <!-- ================================================================ KPI tiles -->
+        <Border Grid.Row="1" Padding="8,8,8,0">
+            <Border.Resources>
+                <Style x:Key="Tile" TargetType="Border" BasedOn="{StaticResource Card}">
+                    <Setter Property="Padding" Value="12,8,14,9" />
+                    <Setter Property="Margin" Value="0,0,8,0" />
+                    <Setter Property="MinWidth" Value="128" />
+                </Style>
+                <Style x:Key="KpiValue" TargetType="TextBlock">
+                    <Setter Property="FontSize" Value="{DynamicResource Font.Kpi}" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Margin" Value="0,1,0,0" />
+                    <Setter Property="Text" Value="–" />
+                </Style>
+                <Style x:Key="KpiSub" TargetType="TextBlock" BasedOn="{StaticResource Muted}">
+                    <Setter Property="FontSize" Value="{DynamicResource Font.Small}" />
+                </Style>
+            </Border.Resources>
+            <DockPanel>
+                <Border Style="{StaticResource Tile}" MinWidth="200" MaxWidth="320">
+                    <StackPanel>
+                        <TextBlock Text="SCENE" Style="{StaticResource Caption}" />
+                        <TextBlock x:Name="KpiScene" Text="No scene open" FontSize="{DynamicResource Font.Title}" FontWeight="SemiBold" Margin="0,3,0,2"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock x:Name="KpiSceneSub" Text="Open .osgt, .osg, .flt (Ctrl+O)" Style="{StaticResource KpiSub}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Tile}" ToolTip="Triangles of the whole scene (instances counted every time they are drawn)">
+                    <StackPanel>
+                        <TextBlock Text="TRIANGLES" Style="{StaticResource Caption}" />
+                        <TextBlock x:Name="KpiTris" Style="{StaticResource KpiValue}" />
+                        <TextBlock x:Name="KpiTrisSub" Style="{StaticResource KpiSub}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Tile}" ToolTip="Draw calls: one per drawable and primitive set">
+                    <StackPanel>
+                        <TextBlock Text="DRAW CALLS" Style="{StaticResource Caption}" />
+                        <TextBlock x:Name="KpiDraws" Style="{StaticResource KpiValue}" />
+                        <TextBlock x:Name="KpiDrawsSub" Style="{StaticResource KpiSub}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Tile}" ToolTip="Vertex and index arrays (each shared geometry once)">
+                    <StackPanel>
+                        <TextBlock Text="GEOMETRY" Style="{StaticResource Caption}" />
+                        <TextBlock x:Name="KpiGeo" Style="{StaticResource KpiValue}" />
+                        <TextBlock x:Name="KpiGeoSub" Style="{StaticResource KpiSub}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Tile}" ToolTip="Texture GPU memory including mipmaps">
+                    <StackPanel>
+                        <TextBlock Text="TEXTURES" Style="{StaticResource Caption}" />
+                        <TextBlock x:Name="KpiTex" Style="{StaticResource KpiValue}" />
+                        <TextBlock x:Name="KpiTexSub" Style="{StaticResource KpiSub}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Tile}" Margin="0" HorizontalAlignment="Left" Cursor="Hand" MouseLeftButtonUp="OnKpiFindings"
+                        ToolTip="Findings by severity - click to see them (Problems tab)">
+                    <StackPanel>
+                        <TextBlock Text="FINDINGS" Style="{StaticResource Caption}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,4">
+                            <Border Style="{StaticResource Chip}" Background="{DynamicResource Sev.High.Tint}" Margin="0,0,6,0">
+                                <TextBlock x:Name="KpiHigh" Text="– High" Foreground="{DynamicResource Sev.High}" FontWeight="SemiBold" />
+                            </Border>
+                            <Border Style="{StaticResource Chip}" Background="{DynamicResource Sev.Med.Tint}" Margin="0,0,6,0">
+                                <TextBlock x:Name="KpiMed" Text="– Medium" Foreground="{DynamicResource Sev.Med}" FontWeight="SemiBold" />
+                            </Border>
+                            <Border Style="{StaticResource Chip}" Background="{DynamicResource Sev.Low.Tint}">
+                                <TextBlock x:Name="KpiLow" Text="– Low" Foreground="{DynamicResource Sev.Low}" FontWeight="SemiBold" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock x:Name="KpiFindSub" Style="{StaticResource KpiSub}" />
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+        </Border>
+
+        <!-- ================================================================ main area -->
+        <Grid x:Name="MainArea" Grid.Row="2" Margin="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="51*" MinWidth="320" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="49*" MinWidth="380" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ======================================== left: scene as tree or map -->
+            <Border x:Name="TreeCard" Style="{StaticResource Card}">
+                <panels:TreePanel x:Name="TreeView" />
+            </Border>
+
+            <GridSplitter x:Name="MainSplitter" Grid.Column="1" Width="8" HorizontalAlignment="Stretch" ResizeBehavior="PreviousAndNext" />
+
+            <!-- ======================================== right: inspect / problems / optimize / review -->
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <TabControl x:Name="Tabs">
+                    <!-- 1 Inspect: details of the selected node above its 3D preview -->
+                    <TabItem x:Name="InspectTab" ToolTip="Details and 3D preview of the selected node (Ctrl+1)">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7B3;" Style="{StaticResource Icon}" Margin="0,0,7,0" />
+                                <TextBlock Text="Inspect" />
+                                <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A7;" Padding="4,2" MinHeight="0" Margin="8,-4,-6,-4"
+                                        Tag="Inspect" Click="OnPopOutButton" AutomationProperties.AutomationId="PopOutInspect"
+                                        ToolTip="Pop out into its own window (close that window to dock it back)" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <panels:InspectPanel x:Name="InspectView" />
+                    </TabItem>
+
+                    <!-- 2 Problems: findings and hotspots -->
+                    <TabItem x:Name="ProblemsTab" ToolTip="Findings and the most expensive geometry / textures (Ctrl+2)">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" Style="{StaticResource Icon}" Margin="0,0,7,0" />
+                                <TextBlock Text="Problems" />
+                                <Border x:Name="ProblemsBadge" Style="{StaticResource Badge}" Background="{DynamicResource Sev.High.Tint}" Margin="7,0,0,0"
+                                        Visibility="Collapsed">
+                                    <TextBlock x:Name="ProblemsCount" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" Foreground="{DynamicResource Sev.High}"
+                                               HorizontalAlignment="Center" />
+                                </Border>
+                                <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A7;" Padding="4,2" MinHeight="0" Margin="8,-4,-6,-4"
+                                        Tag="Problems" Click="OnPopOutButton" AutomationProperties.AutomationId="PopOutProblems"
+                                        ToolTip="Pop out into its own window (close that window to dock it back)" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <panels:ProblemsPanel x:Name="ProblemsView" />
+                    </TabItem>
+
+                    <!-- 3 Textures: every texture with thumbnail, size, users and problems; resize / replace / remove unit -->
+                    <TabItem x:Name="TexturesTab" ToolTip="Every texture of the scene: size, users, problems; resize or replace it (Ctrl+3)">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE91B;" Style="{StaticResource Icon}" Margin="0,0,7,0" />
+                                <TextBlock Text="Textures" />
+                                <Border x:Name="TexBadge" Style="{StaticResource Badge}" Background="{DynamicResource Sev.Med.Tint}" Margin="7,0,0,0" Visibility="Collapsed">
+                                    <TextBlock x:Name="TexCount" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" Foreground="{DynamicResource Sev.Med}"
+                                               HorizontalAlignment="Center" />
+                                </Border>
+                                <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A7;" Padding="4,2" MinHeight="0" Margin="8,-4,-6,-4"
+                                        Tag="Textures" Click="OnPopOutButton" AutomationProperties.AutomationId="PopOutTextures"
+                                        ToolTip="Pop out into its own window (close that window to dock it back)" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <panels:TexturesPanel x:Name="TexturesView" />
+                    </TabItem>
+
+                    <!-- 4 Optimize: choose passes, run them -->
+                    <TabItem x:Name="OptimizeTab" ToolTip="Choose optimization passes and run them (Ctrl+4)">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE945;" Style="{StaticResource Icon}" Margin="0,0,7,0" />
+                                <TextBlock Text="Optimize" />
+                                <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A7;" Padding="4,2" MinHeight="0" Margin="8,-4,-6,-4"
+                                        Tag="Optimize" Click="OnPopOutButton" AutomationProperties.AutomationId="PopOutOptimize"
+                                        ToolTip="Pop out into its own window (close that window to dock it back)" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <panels:OptimizePanel x:Name="OptimizeView" />
+                    </TabItem>
+
+                    <!-- 5 Review: what the last run changed -->
+                    <TabItem x:Name="ReviewTab" ToolTip="What the last run changed, with a damage check, and the undo history (Ctrl+5)">
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE9D5;" Style="{StaticResource Icon}" Margin="0,0,7,0" />
+                                <TextBlock Text="Review" />
+                                <Border x:Name="ReviewBadge" Style="{StaticResource Badge}" Margin="7,0,0,0" Visibility="Collapsed">
+                                    <TextBlock x:Name="ReviewCount" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                </Border>
+                                <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A7;" Padding="4,2" MinHeight="0" Margin="8,-4,-6,-4"
+                                        Tag="Review" Click="OnPopOutButton" AutomationProperties.AutomationId="PopOutReview"
+                                        ToolTip="Pop out into its own window (close that window to dock it back)" />
+                            </StackPanel>
+                        </TabItem.Header>
+                        <panels:ReviewPanel x:Name="ReviewView" />
+                    </TabItem>
+                </TabControl>
+            </Border>
+        </Grid>
+
+        <!-- ================================================================ status bar -->
+        <Border Grid.Row="3" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Border}" BorderThickness="0,1,0,0" Padding="10,5">
+            <DockPanel>
+                <Border x:Name="ModifiedChip" DockPanel.Dock="Right" Style="{StaticResource Chip}" Background="{DynamicResource Sev.Med.Tint}" Visibility="Collapsed"
+                        ToolTip="The scene has changes that are not saved yet (Ctrl+S)">
+                    <TextBlock Text="Unsaved changes" Foreground="{DynamicResource Sev.Med}" FontSize="{DynamicResource Font.Small}" />
+                </Border>
+                <TextBlock x:Name="SavePathText" DockPanel.Dock="Right" Style="{StaticResource Muted}" FontSize="{DynamicResource Font.Small}"
+                           VerticalAlignment="Center" Margin="0,0,10,0" TextTrimming="CharacterEllipsis" MaxWidth="520" />
+                <ProgressBar x:Name="Progress" Width="120" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock x:Name="Status" Text="Ready" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

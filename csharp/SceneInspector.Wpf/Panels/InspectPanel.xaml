@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="SceneInspector.Panels.InspectPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SceneInspector">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44*" MinHeight="150" />
+            <RowDefinition Height="8" />
+            <RowDefinition Height="70*" MinHeight="200" />
+        </Grid.RowDefinitions>
+        <DockPanel Margin="10,10,10,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                <Button DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8C8;" Content="Copy"
+                        Click="OnCopyDetails" ToolTip="Copy the details as text" />
+                <TextBlock Text="DETAILS" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock x:Name="DetailsTitle" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+            <!-- texture units that apply at the node (own and inherited); click: show it in the Textures tab -->
+            <ScrollViewer x:Name="UnitStrip" DockPanel.Dock="Top" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                          Margin="0,0,0,8" Visibility="Collapsed">
+                <ItemsControl x:Name="UnitCards">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource SurfaceAlt}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="5"
+                                    Padding="6" Margin="0,0,8,2" Width="250" Cursor="Hand" MouseLeftButtonUp="OnUnitCardClick"
+                                    ToolTip="{Binding FileTip}">
+                                <DockPanel>
+                                    <Grid DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Top">
+                                        <Grid Width="44" Height="44">
+                                            <Border Background="{DynamicResource Window}" CornerRadius="3" />
+                                            <TextBlock Text="{Binding PlaceholderGlyph}" FontFamily="{DynamicResource Font.Icons}" FontSize="16"
+                                                       Foreground="{Binding PlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Visibility="{Binding PlaceholderVisibility}" ToolTip="{Binding PlaceholderTip}" />
+                                            <Image Source="{Binding Thumb}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                                        </Grid>
+                                    </Grid>
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding UnitText}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <Border Style="{StaticResource Chip}" Background="{Binding StateTint}" Margin="0,0,4,0">
+                                                <TextBlock Text="{Binding StateLabel}" Foreground="{Binding StateBrush}" FontSize="{DynamicResource Font.Small}" />
+                                            </Border>
+                                            <Border Style="{StaticResource Chip}" Background="{DynamicResource Sev.Med.Tint}" Visibility="{Binding NoUvVisibility}"
+                                                    ToolTip="The geometry has no texture coordinates for this unit">
+                                                <TextBlock Text="no UVs" Foreground="{DynamicResource Sev.Med}" FontSize="{DynamicResource Font.Small}" />
+                                            </Border>
+                                            <Border Style="{StaticResource Chip}" Background="{DynamicResource AccentTint}" Visibility="{Binding CompanionVisibility}"
+                                                    ToolTip="{Binding CompanionTip}" Margin="4,0,0,0">
+                                                <TextBlock Text="{Binding CompanionText}" Foreground="{DynamicResource Accent}" FontSize="{DynamicResource Font.Small}" />
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding File}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                        <TextBlock Text="{Binding SizeText}" Style="{StaticResource Muted}" FontSize="{DynamicResource Font.Small}" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding FromText}" Foreground="{DynamicResource TextDisabled}" FontSize="{DynamicResource Font.Small}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <Border Background="{DynamicResource Window}" CornerRadius="4">
+                <TextBox x:Name="DetailsBox" Style="{StaticResource Mono}" Background="Transparent" FontSize="12.5"
+                         local:Ui.Placeholder="Select a node in the tree or the map." />
+            </Border>
+        </DockPanel>
+        <GridSplitter Grid.Row="1" Height="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext"
+                      Cursor="SizeNS" />
+        <local:PreviewPanel x:Name="Preview" Grid.Row="2" />
+    </Grid>
+</UserControl>

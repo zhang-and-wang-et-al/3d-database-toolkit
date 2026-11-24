@@ -1,0 +1,348 @@
+﻿<UserControl x:Class="SceneInspector.Panels.ProblemsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SceneInspector">
+    <DockPanel Margin="10">
+        <Border Style="{StaticResource SegmentBar}" DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="ProbFindings" Style="{StaticResource Segment}" GroupName="prob" Content="Findings" IsChecked="True"
+                             Checked="OnProblemsMode" />
+                <RadioButton x:Name="ProbHotspots" Style="{StaticResource Segment}" GroupName="prob" Content="Hotspots" Checked="OnProblemsMode" />
+                <RadioButton x:Name="ProbSimilar" Style="{StaticResource Segment}" GroupName="prob" Content="Similar" Checked="OnProblemsMode"
+                             ToolTip="Copies of the same object under different nodes: compare them, select them all, make billboards / instances of all of them" />
+            </StackPanel>
+        </Border>
+
+        <Grid>
+            <!-- findings -->
+            <DockPanel x:Name="FindingsView">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <TextBlock x:Name="FindingCount" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                    <ComboBox x:Name="FindingSevBox" DockPanel.Dock="Right" Width="140" Margin="8,0,0,0" SelectedIndex="0"
+                              SelectionChanged="OnFindingFilter" ToolTip="Minimum severity">
+                        <ComboBoxItem Content="All severities" Tag="info" />
+                        <ComboBoxItem Content="Low and up" Tag="low" />
+                        <ComboBoxItem Content="Medium and up" Tag="medium" />
+                        <ComboBoxItem Content="High only" Tag="high" />
+                    </ComboBox>
+                    <ComboBox x:Name="FindingTypeBox" SelectionChanged="OnFindingFilter" ToolTip="Finding type" />
+                </DockPanel>
+                <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceAlt}" CornerRadius="5" Padding="10" Margin="0,8,0,0">
+                    <DockPanel>
+                        <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                            <Button x:Name="FixButton" Style="{StaticResource Button.Accent}" local:Ui.Icon="&#xE90F;" Content="Fix This"
+                                    Click="OnFixFinding" IsEnabled="False" Margin="0,0,6,0" ToolTip="Run the suggested fix on the nodes of this finding" />
+                            <Button x:Name="FixAllButton" local:Ui.Icon="&#xE90F;" Content="Fix All of This Kind" Click="OnFixAllSame" IsEnabled="False"
+                                    Margin="0,0,6,0" />
+                            <Button x:Name="ShowInTreeButton" local:Ui.Icon="&#xE8FD;" Content="Show in Tree" Click="OnShowFindingNodes"
+                                    IsEnabled="False" ToolTip="Select the affected nodes in the tree (Enter, double click)" />
+                        </WrapPanel>
+                        <TextBox x:Name="FindingText" Height="110" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                 BorderThickness="0" Background="Transparent" Padding="0" VerticalContentAlignment="Top"
+                                 local:Ui.Placeholder="Select a finding to see what it means and how to fix it." />
+                    </DockPanel>
+                </Border>
+                <ListView x:Name="FindingList" SelectionMode="Single" SelectionChanged="OnFindingSelect" KeyDown="OnFindingKey"
+                          MouseDoubleClick="OnShowFindingNodes" local:Ui.EmptyText="No findings - open a scene first.">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="86">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Severity" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Chip}" Background="{Binding SevTint}">
+                                            <TextBlock Text="{Binding SevLabel}" Foreground="{Binding SevBrush}" FontSize="{DynamicResource Font.Small}"
+                                                       FontWeight="SemiBold" />
+                                        </Border>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Finding" Width="270" DisplayMemberBinding="{Binding Title}" />
+                            <GridViewColumn Width="110">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Saves About" HorizontalContentAlignment="Right"
+                                                          ToolTip="Estimated saving if the fix is applied" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Saving}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Suggested Fix" Width="220" DisplayMemberBinding="{Binding Fix}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
+
+            <!-- hotspots -->
+            <Grid x:Name="HotspotsView" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="55*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="45*" />
+                </Grid.RowDefinitions>
+                <TextBlock Style="{StaticResource Caption}" Text="GEOMETRIES BY TRIANGLES × INSTANCES   ·   double click shows it in the tree" Margin="2,0,0,6" />
+                <ListView x:Name="HotGeo" Grid.Row="1" SelectionMode="Single" MouseDoubleClick="OnHotGoto" KeyDown="OnHotKey"
+                          ContextMenuOpening="OnHotGeoMenuOpening" local:Ui.EmptyText="No geometry.">
+                    <ListView.ContextMenu>
+                        <ContextMenu x:Name="HotGeoMenu" />
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Path" Width="320">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Label}" ToolTip="{Binding FullPath}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="90">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Triangles" HorizontalContentAlignment="Right" ToolTip="Triangles × instances" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding A}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="80">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Instances" HorizontalContentAlignment="Right" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding B}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="90">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Memory" HorizontalContentAlignment="Right" ToolTip="Vertex and index memory of one copy" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding C}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="110">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Similar"
+                                                          ToolTip="Copies of the object holding this geometry elsewhere in the scene (from the Similar view; right click: Select Similar Objects)" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding D}" ToolTip="{Binding DTip}" Foreground="{DynamicResource Accent}" Margin="10,0,0,0" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <TextBlock Grid.Row="2" Style="{StaticResource Caption}" Text="TEXTURES BY GPU MEMORY (INCL. MIPMAPS)" Margin="2,12,0,6" />
+                <ListView x:Name="HotTex" Grid.Row="3" SelectionMode="Single" MouseDoubleClick="OnHotGoto" KeyDown="OnHotKey"
+                          local:Ui.EmptyText="No textures.">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Image" Width="320" DisplayMemberBinding="{Binding Label}" />
+                            <GridViewColumn Width="90">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Size" HorizontalContentAlignment="Right" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding A}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="80">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="GPU" HorizontalContentAlignment="Right" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding B}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="80">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Used By" HorizontalContentAlignment="Right" ToolTip="Number of nodes using the texture" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding C}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+
+            <!-- similar objects: copies of the same object under different nodes (S4) -->
+            <DockPanel x:Name="SimilarView" Visibility="Collapsed">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <TextBlock x:Name="SimSummary" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="10,0,0,0"
+                               TextTrimming="CharacterEllipsis" />
+                    <Button x:Name="SimFindButton" DockPanel.Dock="Right" local:Ui.Icon="&#xE721;" Content="Find" Click="OnSimFind" Margin="8,0,0,0"
+                            ToolTip="Search the scene for copies of the same object with these criteria" ToolTipService.ShowOnDisabled="True" />
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="MATCH BY" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="2,0,12,0" />
+                        <CheckBox x:Name="SimName" Content="Name" IsChecked="True" Margin="0,0,14,0" Checked="OnSimCriteria" Unchecked="OnSimCriteria"
+                                  ToolTip="Names match after ignoring case, the file extension and trailing numbers (tree_12, Tree.001, tree #3 and tree (2) are all 'tree').&#x0a;Off: objects with other names but the same shape are grouped too." />
+                        <CheckBox x:Name="SimSize" Content="Size" IsChecked="True" Margin="0,0,14,0" Checked="OnSimCriteria" Unchecked="OnSimCriteria"
+                                  ToolTip="Size matches within 2 % (measured in the object's own frame: a turned copy has the same size)" />
+                        <CheckBox x:Name="SimTopology" Content="Topology" IsChecked="True" Margin="0,0,14,0" Checked="OnSimCriteria" Unchecked="OnSimCriteria"
+                                  ToolTip="Drawables, triangles, vertices and primitive types match, and the shape (distances from the centre, so turned copies match)" />
+                        <CheckBox x:Name="SimTexture" Content="Texture" Checked="OnSimCriteria" Unchecked="OnSimCriteria"
+                                  ToolTip="Only group objects that use the same textures / material.&#x0a;Off (default): copies with another texture stay in one group. Texture differences are always shown as variants, and cards / instances are made per variant." />
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- selected group: members and actions -->
+                <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceAlt}" CornerRadius="5" Padding="10" Margin="0,8,0,0">
+                    <DockPanel>
+                        <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                            <Button x:Name="SimSelectButton" Style="{StaticResource Button.Accent}" local:Ui.Icon="&#xE8B3;" Content="Select All in Tree" Click="OnSimSelectAll" Margin="0,0,6,6"
+                                    ToolTip="Select every copy in the scene tree (Enter). The Optimize tab then runs on them (Apply to: Selection)." />
+                            <Button x:Name="SimBillboardButton" local:Ui.Icon="&#xE91B;" Content="Billboard All" Tag="billboard"
+                                    Click="OnSimCards" Margin="0,0,6,6" ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Replace every copy with an axial billboard. Copies that look the same share one atlas and card (one per texture variant)." />
+                            <Button x:Name="SimCrossButton" local:Ui.Icon="&#xE81E;" Content="Cross Cards All" Tag="crossed" Click="OnSimCards" Margin="0,0,6,6"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Replace every copy with crossed cards (fixed planes, every renderer). Copies that look the same share one atlas." />
+                            <Button x:Name="SimCardsLayoutButton" local:Ui.Icon="&#xE81E;" Content="Cards All…" Click="OnSimCardsLayout" Margin="0,0,6,6"
+                                    AutomationProperties.AutomationId="SimCardsLayoutButton" ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Replace every copy with cards of a layout you pick (ground, aerial, box, and more). Copies that look the same share one atlas." />
+                            <Button x:Name="SimProxyButton" local:Ui.Icon="&#xE7B8;" Content="Proxy All" Click="OnSimProxy" Margin="0,0,6,6"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTip="Replace every copy with a simplified textured hull. Copies that look the same share one hull and texture." />
+                            <Button x:Name="SimInstanceButton" local:Ui.Icon="&#xE8C8;" Content="Make Instances" Click="OnSimInstances" Margin="0,0,6,6"
+                                    ToolTipService.ShowOnDisabled="True" />
+                        </WrapPanel>
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                            <TextBlock x:Name="SimDetailTitle" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock x:Name="SimDetailText" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,2,0,0" />
+                        </StackPanel>
+                        <ListView x:Name="SimMembers" SelectionMode="Extended" Height="170" MouseDoubleClick="OnSimMemberGoto" KeyDown="OnSimMemberKey"
+                                  local:Ui.EmptyText="Select a group to see its copies." local:Ui.FillLastColumn="120">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Width="86">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Content="Match" ToolTip="How this copy matches the first copy of its shape (reference)" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource Chip}" Background="{Binding MatchTint}" ToolTip="{Binding MatchTip}">
+                                                    <TextBlock Text="{Binding MatchLabel}" Foreground="{Binding MatchBrush}" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Variant" Width="130">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Variant}" ToolTip="{Binding Variant}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="150">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Content="Position" ToolTip="World centre of the copy (x, y, z)" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Position}" Foreground="{DynamicResource TextMuted}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="44">
+                                        <GridViewColumn.Header>
+                                            <GridViewColumnHeader Content="Inst." HorizontalContentAlignment="Right" ToolTip="How often this node is drawn (shared from several parents)" />
+                                        </GridViewColumn.Header>
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Inst}" Style="{StaticResource Num}" /></DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <!-- takes the width the others leave (Ui.FillLastColumn) -->
+                                    <GridViewColumn Header="Path" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Path}" ToolTip="{Binding Path}" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" /></DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </DockPanel>
+                </Border>
+
+                <ListView x:Name="SimList" SelectionMode="Extended" SelectionChanged="OnSimSelect" KeyDown="OnSimKey"
+                          GridViewColumnHeader.Click="OnSimHeaderClick" ContextMenuOpening="OnSimMenuOpening"
+                          local:Ui.EmptyText="Open a scene first." local:Ui.FillLastColumn="120">
+                    <ListView.ContextMenu>
+                        <ContextMenu x:Name="SimMenu" />
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="130">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Object" Tag="name" ToolTip="Name of the copies (numbers and extensions left out). Click a header to sort, click again to reverse." />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Name}" ToolTip="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="62">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Copies" Tag="copies" HorizontalContentAlignment="Right" ToolTip="Drawn copies (instances of shared nodes counted)" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Copies}" ToolTip="{Binding CopiesTip}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="70">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Tris Each" Tag="each" HorizontalContentAlignment="Right" ToolTip="Triangles of one copy" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Each}" Style="{StaticResource Num}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="128">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Total Tris" Tag="total" ToolTip="Triangles of all copies, and their share of the scene" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" ToolTip="{Binding TotalTip}">
+                                            <Grid Width="38" Height="6" VerticalAlignment="Center">
+                                                <Border Background="{DynamicResource SurfaceRaised}" CornerRadius="3" />
+                                                <Border Background="{DynamicResource Accent}" CornerRadius="3" HorizontalAlignment="Left" Width="{Binding ShareWidth}" />
+                                            </Grid>
+                                            <TextBlock Text="{Binding Total}" Width="70" TextAlignment="Right" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="84">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Match" Tag="class" ToolTip="How closely the copies match (hover a chip for what it means and which action fits)" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Chip}" Background="{Binding ClassTint}" ToolTip="{Binding ClassTip}">
+                                            <TextBlock Text="{Binding ClassLabel}" Foreground="{Binding ClassBrush}" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" />
+                                        </Border>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="170">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Variants" Tag="variants" ToolTip="Texture / material variants: copies that look the same" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Variants}" ToolTip="{Binding VariantsTip}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <!-- takes the width the others leave (Ui.FillLastColumn) -->
+                            <GridViewColumn Width="200">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Differences" Tag="diff" ToolTip="What differs between the copies" />
+                                </GridViewColumn.Header>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Differences}" ToolTip="{Binding Differences}" TextTrimming="CharacterEllipsis"
+                                                             Foreground="{DynamicResource TextMuted}" /></DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>

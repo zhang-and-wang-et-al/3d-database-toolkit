@@ -1,0 +1,225 @@
+﻿<UserControl x:Class="SceneInspector.Panels.TreePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SceneInspector">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="8,8,8,6">
+            <Border Style="{StaticResource SegmentBar}" DockPanel.Dock="Left" Margin="0,0,10,0">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="LeftTree" Style="{StaticResource Segment}" GroupName="left" Content="Tree" local:Ui.Icon="&#xE8FD;"
+                                 IsChecked="True" Checked="OnLeftMode" ToolTip="The scene graph with cost columns" />
+                    <RadioButton x:Name="LeftMap" Style="{StaticResource Segment}" GroupName="left" Content="Map" local:Ui.Icon="&#xE80A;"
+                                 Checked="OnLeftMode" ToolTip="Treemap: area = cost, colour = worst finding" />
+                </StackPanel>
+            </Border>
+            <Button x:Name="PopOutButton" DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A7;" Padding="6,4" Margin="4,0,0,0"
+                    Tag="Tree" Click="OnPopOut" AutomationProperties.AutomationId="PopOutTree"
+                    ToolTip="Pop out into its own window (close that window to dock it back)" />
+            <Grid>
+            <!-- tree tools -->
+            <DockPanel x:Name="TreeTools">
+                <Button DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE8A9;" Content="Expand Most Expensive Path" Click="OnExpandBiggest"
+                        ToolTip="Expand the most expensive path below the selected node" />
+                <ToggleButton x:Name="OnlyFindings" DockPanel.Dock="Right" local:Ui.Icon="&#xE7BA;" Content="With findings" Margin="6,0,2,0"
+                              Checked="OnFilterChanged" Unchecked="OnFilterChanged" ToolTip="Show only nodes with findings (and the path to them)" />
+                <CheckBox x:Name="FoldChains" DockPanel.Dock="Right" Content="Fold chains" IsChecked="True" Margin="10,0,4,0" VerticalAlignment="Center"
+                          Checked="OnFoldChains" Unchecked="OnFoldChains"
+                          ToolTip="Show a chain of single-child groups as one row (the grey prefix names the folded nodes)" />
+                <TextBox x:Name="FilterBox" local:Ui.Placeholder="Filter by name or class   (Ctrl+F)" TextChanged="OnFilterText"
+                         KeyDown="OnFilterKey" />
+            </DockPanel>
+            <!-- map tools -->
+            <StackPanel x:Name="MapTools" Orientation="Horizontal" Visibility="Collapsed">
+                <TextBlock Text="Size by" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox x:Name="MapMetricBox" Width="150" SelectionChanged="OnMapMetric" />
+                <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE74A;" Content="Up" Click="OnMapUp" Margin="6,0,0,0"
+                        ToolTip="Zoom out one level" />
+                <Button Style="{StaticResource Button.Ghost}" local:Ui.Icon="&#xE80F;" Content="Whole Scene" Click="OnMapTop" />
+            </StackPanel>
+            </Grid>
+        </DockPanel>
+
+        <!-- selection view: what is selected, as a picture (whatever tab is active) -->
+        <Expander x:Name="SelectionViewExpander" DockPanel.Dock="Bottom" Margin="8,4,8,8" IsExpanded="True"
+                  AutomationProperties.AutomationId="SelectionViewExpander" Expanded="OnSelectionViewToggled" Collapsed="OnSelectionViewToggled">
+            <Expander.Header>
+                <DockPanel>
+                    <TextBlock Text="SELECTED" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <TextBlock x:Name="SelectionCaption" AutomationProperties.AutomationId="SelectionCaption" Text="Nothing selected"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                </DockPanel>
+            </Expander.Header>
+            <Grid Margin="0,4,0,0">
+                <local:PreviewPanel x:Name="Locator" Compact="True" Height="220" AutomationProperties.AutomationId="Locator" />
+                <ToggleButton x:Name="SelectionScene" Content="Scene around" ToolTip="Show the tile around it" HorizontalAlignment="Right"
+                              VerticalAlignment="Top" Margin="6" AutomationProperties.AutomationId="SelectionScene"
+                              Checked="OnSelectionScene" Unchecked="OnSelectionScene" />
+            </Grid>
+        </Expander>
+
+        <Grid>
+            <!-- scene tree: a flattened, lazily filled tree in a ListView (columns, multi-selection, virtualisation) -->
+            <ListView x:Name="Tree" SelectionMode="Extended" SelectionChanged="OnTreeSelect" PreviewKeyDown="OnTreeKey"
+                      GridViewColumnHeader.Click="OnHeaderClick" ContextMenuOpening="OnTreeMenuOpening"
+                      local:Ui.EmptyText="Open a scene to inspect it (Ctrl+O)" local:Ui.FillColumn="name" local:Ui.FillMinWidth="186">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+                        <Setter Property="Foreground" Value="{Binding Foreground}" />
+                        <Setter Property="Padding" Value="0,2" />
+                        <Setter Property="MinHeight" Value="24" />
+                        <EventSetter Event="MouseDoubleClick" Handler="OnTreeDoubleClick" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ContextMenu>
+                    <ContextMenu x:Name="TreeMenu" />
+                </ListView.ContextMenu>
+                <ListView.View>
+                    <GridView>
+                        <!-- takes the width the others leave (Ui.FillColumn) -->
+                        <GridViewColumn Width="186">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Scene Tree" Tag="name" ToolTip="Node name and class. Click a header to sort, click again to reverse." />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <!-- a DockPanel, not a StackPanel: the name is the last child, so it trims with "…" at the cell edge -->
+                                    <DockPanel Margin="{Binding Indent}" ToolTip="{Binding FullPath}">
+                                        <Ellipse DockPanel.Dock="Left" Width="6" Height="6" Margin="0,0,3,0" VerticalAlignment="Center" StrokeThickness="1.5"
+                                                 Stroke="{Binding ChangedStroke}" Fill="{Binding ChangedFill}" ToolTip="changed by the last run"
+                                                 Visibility="{Binding ChangedVisibility}" />
+                                        <TextBlock DockPanel.Dock="Left" Text="{Binding Glyph}" Width="16" FontFamily="{DynamicResource Font.Icons}" FontSize="9"
+                                                   Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Cursor="Hand"
+                                                   Background="Transparent" MouseLeftButtonDown="OnGlyphClick" />
+                                        <Ellipse DockPanel.Dock="Left" Width="7" Height="7" Fill="{Binding SevBrush}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                 Visibility="{Binding SevVisibility}" />
+                                        <!-- the folded prefix gives way first: the row's own name always shows -->
+                                        <TextBlock DockPanel.Dock="Left" Text="{Binding Chain}" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}"
+                                                   MaxWidth="100" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="100">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Share" Tag="cost"
+                                                      ToolTip="Share of the scene: the larger of triangle share and memory share" />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Grid Width="38" Height="6" VerticalAlignment="Center">
+                                            <Border Background="{DynamicResource SurfaceRaised}" CornerRadius="3" />
+                                            <Border Background="{DynamicResource Accent}" CornerRadius="3" HorizontalAlignment="Left" Width="{Binding ShareWidth}" />
+                                        </Grid>
+                                        <TextBlock Text="{Binding ShareText}" Width="46" TextAlignment="Right" Foreground="{DynamicResource TextMuted}"
+                                                   FontSize="{DynamicResource Font.Small}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <!-- triangles, or visible triangles / vertices (header context menu); it sorts by what it shows -->
+                        <GridViewColumn Width="74">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader x:Name="CountHeader" Content="Triangles" Tag="tris" HorizontalContentAlignment="Right"
+                                                      ToolTip="Triangles below the node, every instance counted.&#x0a;Right click: show worst case visible triangles or vertices instead.">
+                                    <GridViewColumnHeader.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Triangles" Tag="tris" Click="OnCountColumn" ToolTip="Triangles below the node, every instance counted" />
+                                            <MenuItem Header="Visible Triangles" Tag="vis" Click="OnCountColumn"
+                                                      ToolTip="Worst case visible triangles (one LOD level / switch child at a time)" />
+                                            <MenuItem Header="Vertices" Tag="verts" Click="OnCountColumn" ToolTip="Vertices below the node" />
+                                        </ContextMenu>
+                                    </GridViewColumnHeader.ContextMenu>
+                                </GridViewColumnHeader>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding Count}" ToolTip="{Binding CountTip}" Style="{StaticResource Num}" /></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="54">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Draws" Tag="draws" HorizontalContentAlignment="Right" ToolTip="Draw calls below the node" />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding Draws}" Style="{StaticResource Num}" /></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="72">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Geometry" Tag="geo" HorizontalContentAlignment="Right" ToolTip="Vertex and index memory" />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding Geo}" Style="{StaticResource Num}" /></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="70">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Textures" Tag="tex" HorizontalContentAlignment="Right"
+                                                      ToolTip="Texture GPU memory including mipmaps" />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding Tex}" Style="{StaticResource Num}" /></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="56">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Units"
+                                                      ToolTip="Texture units drawn at / below the node (own and inherited state).&#x0a;Orange: an image is missing or a geometry has no texture coordinates for a unit." />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Chip}" Background="{Binding UnitsTint}" Visibility="{Binding UnitsVisibility}"
+                                            ToolTip="{Binding UnitsTip}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding UnitsText}" Foreground="{Binding UnitsBrush}" FontSize="{DynamicResource Font.Small}" />
+                                            <TextBlock Text="&#xE7BA;" FontFamily="{DynamicResource Font.Icons}" FontSize="10" Margin="4,1,0,0"
+                                                       Foreground="{DynamicResource Sev.Med}" VerticalAlignment="Center" Visibility="{Binding UnitsWarnVisibility}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="50">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Inst." Tag="inst" HorizontalContentAlignment="Right"
+                                                      ToolTip="Instances: how often this node is drawn (shared from several parents)" />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding Inst}" Style="{StaticResource Num}" /></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="200">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Content="Notes" Tag="findings" ToolTip="Worst finding at or below the node, external files, LOD ranges" />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <DockPanel ToolTip="{Binding NotesTip}">
+                                        <Border DockPanel.Dock="Left" Style="{StaticResource Chip}" Background="{Binding SevTint}" Visibility="{Binding SevVisibility}"
+                                                Margin="0,0,6,0">
+                                            <TextBlock Text="{Binding SevLabel}" Foreground="{Binding SevBrush}" FontSize="{DynamicResource Font.Small}"
+                                                       FontWeight="SemiBold" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Notes}" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            <!-- treemap -->
+            <DockPanel x:Name="MapPanel" Visibility="Collapsed" Margin="8,0,8,8">
+                <TextBlock x:Name="MapPath" DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="2,0,0,6" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="MapInfo" DockPanel.Dock="Bottom" TextWrapping="Wrap" Margin="2,8,0,0" Style="{StaticResource Muted}" />
+                <Border CornerRadius="4" ClipToBounds="True">
+                    <local:TreemapView x:Name="Map" ClipToBounds="True" />
+                </Border>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>

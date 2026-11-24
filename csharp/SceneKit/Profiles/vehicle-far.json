@@ -1,0 +1,14 @@
+{
+  "name": "Vehicle far",
+  "version": 1,
+  "class": "vehicles",
+  "use": "far LOD",
+  "description": "Vehicles lose what nobody sees (interiors, engines), are simplified with hard edges allowed to collapse (seams permissive) and get LOD levels that end in a textured hull. A level switches in where it changes the picture by at most 1 pixel.",
+  "select_hint": "Select the vehicles one by one, not the ground they stand on.",
+  "pixel_error": 1,
+  "passes": {
+    "remove_occluded": {},
+    "simplify": { "seams": "permissive" },
+    "generate_lod": { "switching": "error", "far_level": "proxy" }
+  }
+}

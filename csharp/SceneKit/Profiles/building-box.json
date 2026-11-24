@@ -1,0 +1,12 @@
+{
+  "name": "Building box",
+  "version": 1,
+  "class": "buildings",
+  "use": "far LOD",
+  "description": "A building seen from far becomes a textured box: five pictured faces, 10 triangles, one 512 px atlas.",
+  "select_hint": "Select box-shaped buildings, not the terrain.",
+  "pixel_error": 3,
+  "passes": {
+    "replace_cards": { "layout": "box", "texture": 512 }
+  }
+}

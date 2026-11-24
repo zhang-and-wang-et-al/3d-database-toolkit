@@ -1,0 +1,12 @@
+{
+  "name": "Clutter",
+  "version": 1,
+  "class": "clutter",
+  "use": "bushes, rocks, signs",
+  "description": "On a synthetic test tree these 2-plane cards looked worse than the default crossed cards from oblique and ground-level views; check on your own objects. Small objects cost 8 triangles each: 2 crossed cards with a 256 px picture. Identical copies are baked once.",
+  "select_hint": "Select the bushes, rocks or signs, not the ground they stand on. Compare with the default crossed cards first.",
+  "pixel_error": 6,
+  "passes": {
+    "replace_cards": { "layout": "cross2", "texture": 256, "share": true }
+  }
+}

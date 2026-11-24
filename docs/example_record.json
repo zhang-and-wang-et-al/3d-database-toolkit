@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "tool_version": "1.0.0",
+  "id": "e9f3e1d3d74564eb1b37a7e5c32c187e2d77ede6fc34a09a39bdd3c7e464b0f0",
+  "status": "ok",
+  "issues": [
+    {
+      "code": "open_boundaries",
+      "severity": "info",
+      "message": "84 boundary edges"
+    }
+  ],
+  "file": {
+    "path": "D:/Models/props/suzanne.fbx",
+    "name": "suzanne.fbx",
+    "stem": "suzanne",
+    "extension": ".fbx",
+    "format": "FBX",
+    "size_bytes": 111036,
+    "modified": "2026-09-23T11:09:13+00:00",
+    "root": "D:/Models/props",
+    "relative_path": "suzanne.fbx",
+    "folder": ".",
+    "sha256": "e9f3e1d3d74564eb1b37a7e5c32c187e2d77ede6fc34a09a39bdd3c7e464b0f0"
+  },
+  "import": {
+    "blender_version": "5.0.1",
+    "importer": "import_scene.fbx",
+    "seconds": 0.054,
+    "analysis_seconds": 0.012
+  },
+  "scene": {
+    "objects": 1,
+    "mesh_objects": 1,
+    "other_geometry_objects": 0,
+    "armatures": 0,
+    "bones": 0,
+    "cameras": 0,
+    "lights": 0,
+    "empties": 0,
+    "collections": 0
+  },
+  "geometry": {
+    "vertices": 2012,
+    "edges": 3978,
+    "faces": 1968,
+    "triangles": 3936,
+    "tri_faces": 0,
+    "quads": 1968,
+    "ngons": 0,
+    "boundary_edges": 84,
+    "non_manifold_edges": 0,
+    "loose_vertices": 0,
+    "loose_edges": 0,
+    "degenerate_faces": 0,
+    "duplicate_vertices": 0,
+    "surface_area": 10.625743388923452,
+    "volume": 2.0534460651195166,
+    "watertight": false,
+    "mean_edge_length": 0.06647250063876832
+  },
+  "objects_detail": [
+    {
+      "name": "Suzanne",
+      "type": "MESH",
+      "vertices": 2012,
+      "faces": 1968,
+      "triangles": 3936,
+      "materials": 1,
+      "uv_maps": 1
+    }
+  ],
+  "materials": {
+    "count": 1,
+    "names": [
+      "Skin"
+    ],
+    "textures": 0,
+    "packed_textures": 0,
+    "missing_textures": [],
+    "relinked_textures": [],
+    "uv_maps": 1,
+    "color_attributes": 0
+  },
+  "animation": {
+    "actions": 0,
+    "frame_start": null,
+    "frame_end": null,
+    "shape_keys": 0
+  },
+  "classification": {
+    "textured": false,
+    "rigged": false,
+    "animated": false,
+    "tags": [
+      "quad_dominant"
+    ],
+    "poly_tier": "low"
+  },
+  "orientation": {
+    "mode": "auto",
+    "detected_up": "+Z",
+    "rotation_applied": false,
+    "confidence": 0.206,
+    "base_support": {
+      "+Z": 0.0041,
+      "-Z": 0.0186,
+      "+Y": 0.0087,
+      "-Y": 0.0107,
+      "+X": 0.0003,
+      "-X": 0.0003
+    },
+    "front": "-Y (Blender front)",
+    "front_azimuth_deg": -90,
+    "hero_azimuth_deg": -45
+  },
+  "bounds": {
+    "min": [
+      -1.325935,
+      -0.82232,
+      -0.970486
+    ],
+    "max": [
+      1.325935,
+      0.778266,
+      0.939236
+    ],
+    "size": [
+      2.65187,
+      1.600586,
+      1.909722
+    ],
+    "center": [
+      0.0,
+      -0.022027,
+      -0.015625
+    ],
+    "diagonal": 3.638864,
+    "scale_hint": "human scale (<3 m)"
+  },
+  "render": {
+    "engine": "CYCLES",
+    "device": "CPU",
+    "samples": 24,
+    "resolution": 400,
+    "views": [
+      {
+        "name": "hero",
+        "azimuth_deg": 315,
+        "elevation_deg": 25.0,
+        "projection": "perspective"
+      },
+      {
+        "name": "front",
+        "azimuth_deg": 270,
+        "elevation_deg": 4.0,
+        "projection": "orthographic"
+      },
+      {
+        "name": "side",
+        "azimuth_deg": 0,
+        "elevation_deg": 4.0,
+        "projection": "orthographic"
+      },
+      {
+        "name": "back",
+        "azimuth_deg": 90,
+        "elevation_deg": 4.0,
+        "projection": "orthographic"
+      },
+      {
+        "name": "top",
+        "azimuth_deg": 270,
+        "elevation_deg": 89.5,
+        "projection": "orthographic"
+      },
+      {
+        "name": "wire",
+        "azimuth_deg": 315,
+        "elevation_deg": 25.0,
+        "projection": "perspective"
+      }
+    ],
+    "preview_image": "suzanne.fbx.preview.jpg",
+    "sheet_image": "suzanne.fbx.showcase.jpg",
+    "seconds": 22.038
+  },
+  "worker_seconds": 22.11,
+  "processed_at": "2026-09-23T11:17:53+00:00",
+  "processing_seconds": 23.012
+}

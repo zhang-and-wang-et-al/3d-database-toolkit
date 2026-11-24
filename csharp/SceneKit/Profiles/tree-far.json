@@ -1,0 +1,12 @@
+{
+  "name": "Tree, far / forest",
+  "version": 1,
+  "class": "vegetation",
+  "use": "far LOD",
+  "description": "Far trees and whole forests cost 2 triangles each: one card that turns towards the viewer (billboard), 256 px. Identical copies are baked once.",
+  "select_hint": "Select the trees of the forest; copies of one tree share one atlas.",
+  "pixel_error": 6,
+  "passes": {
+    "replace_cards": { "layout": "billboard", "texture": 256, "share": true }
+  }
+}

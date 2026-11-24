@@ -1,0 +1,83 @@
+﻿<UserControl x:Class="SceneInspector.Panels.OptimizePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SceneInspector">
+    <DockPanel>
+        <!-- preset and scope -->
+        <Grid DockPanel.Dock="Top" Margin="12,12,12,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="PRESET" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,14,0" />
+            <StackPanel Grid.Column="1">
+                <ComboBox x:Name="PresetBox" Width="300" HorizontalAlignment="Left" SelectionChanged="OnPreset"
+                          ToolTip="Ticks a set of passes; below the line: profiles (a set of passes with all their settings). Change single passes below" />
+                <TextBlock x:Name="ProfileHint" Style="{StaticResource Muted}" FontSize="{DynamicResource Font.Small}" TextWrapping="Wrap"
+                           Margin="0,4,0,0" MaxWidth="560" HorizontalAlignment="Left" Visibility="Collapsed" />
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <Button x:Name="SaveProfileButton" Content="Save as profile…" Padding="10,3" Click="OnSaveProfile"
+                            ToolTip="Stores the ticked passes with all their settings under a name you choose" />
+                    <Button x:Name="DeleteProfileButton" Content="Delete profile" Padding="10,3" Margin="6,0,0,0" Click="OnDeleteProfile" IsEnabled="False"
+                            ToolTip="Deletes the chosen profile of your own (the built-in ones stay)" />
+                    <Button x:Name="ProfileMoreButton" Content="⋯" Padding="10,3" Margin="6,0,0,0" Click="OnProfileMore" ToolTip="More: open the profiles folder" />
+                </StackPanel>
+            </StackPanel>
+            <TextBlock Grid.Row="1" Text="APPLY TO" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,10,14,0" />
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,10,0,0">
+                <Border Style="{StaticResource SegmentBar}" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="ScopeScene" Style="{StaticResource Segment}" GroupName="scope" Content="Whole scene" IsChecked="True"
+                                     Checked="OnScopeChanged" />
+                        <RadioButton x:Name="ScopeSelection" Style="{StaticResource Segment}" GroupName="scope" Content="Selection"
+                                     Checked="OnScopeChanged" ToolTip="Only the nodes selected in the tree (and what is below them)" />
+                    </StackPanel>
+                </Border>
+                <TextBlock x:Name="ScopeLine" Style="{StaticResource Muted}" FontSize="{DynamicResource Font.Small}" Margin="0,4,0,0"
+                           TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" MaxWidth="560" />
+            </StackPanel>
+            <CheckBox x:Name="OptExternals" Grid.Row="2" Grid.Column="1" Margin="0,10,0,0" IsChecked="True"
+                      Content="Include external files (saved as optimized copies next to the result)" />
+            <TextBlock Grid.Row="3" Text="Classes / companion images" Style="{StaticResource Caption}" VerticalAlignment="Top" Margin="0,16,14,0" />
+            <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,10,0,0">
+                <TextBox x:Name="CompanionBox" Width="420" HorizontalAlignment="Left" LostKeyboardFocus="OnCompanionCommit" KeyDown="OnCompanionKey"
+                         ToolTip="Naming rules of companion images (e.g. infrared) next to the textures, separated by ';'. Tokens {stem} {ext} {dir}; a sub-folder (ir/{stem}{ext}) or an extension of their own ({stem}_ir.int) are fine. Cards, billboard, proxy, rebake and LOD far levels bake a companion atlas named by the same rule; resizing resizes them. Enter applies." />
+                <TextBlock x:Name="CompanionHint" Style="{StaticResource Muted}" FontSize="{DynamicResource Font.Small}" TextWrapping="Wrap" Margin="0,3,0,0" MaxWidth="560"
+                           HorizontalAlignment="Left" />
+            </StackPanel>
+        </Grid>
+
+        <!-- pinned run bar -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource Border}" BorderThickness="0,1,0,0" Padding="12,10">
+            <DockPanel>
+                <Button x:Name="RunButton" DockPanel.Dock="Right" Style="{StaticResource Button.Accent}" local:Ui.Icon="&#xE768;"
+                        Content="Run" Padding="16,6" Command="{x:Static local:MainWindow.RunCommand}" />
+                <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                    <TextBlock x:Name="ValidationText" Foreground="{DynamicResource Sev.High}" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,4" />
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource Chip}" Background="{DynamicResource Sev.Med.Tint}" Margin="0,0,6,0">
+                            <TextBlock Text="changes look" Foreground="{DynamicResource Sev.Med}" FontSize="{DynamicResource Font.Small}" />
+                        </Border>
+                        <TextBlock Text="= the picture may change, check it in Review" Style="{StaticResource Muted}"
+                                   FontSize="{DynamicResource Font.Small}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                        <Border Style="{StaticResource Chip}" Background="{DynamicResource Hover}" Margin="0,0,6,0">
+                            <TextBlock Text="changes structure" Foreground="{DynamicResource TextMuted}" FontSize="{DynamicResource Font.Small}" />
+                        </Border>
+                        <TextBlock Text="= rearranges the scene graph, the picture is unchanged" Style="{StaticResource Muted}"
+                                   FontSize="{DynamicResource Font.Small}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="12,0,8,8">
+            <StackPanel x:Name="PassPanel" />
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,12 @@
+{
+  "name": "Tree LOD chain",
+  "version": 1,
+  "class": "vegetation",
+  "use": "LOD",
+  "description": "Trees keep full detail close up and switch to simplified levels further away; the farthest level is 3 crossed cards (star3). A level switches in where it changes the picture by at most 6 pixels.",
+  "select_hint": "Select the trees, or leave the selection empty for every heavy geometry.",
+  "pixel_error": 6,
+  "passes": {
+    "generate_lod": { "far_level": "cards", "far_layout": "star3" }
+  }
+}

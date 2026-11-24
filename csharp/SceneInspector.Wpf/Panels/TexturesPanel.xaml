@@ -1,0 +1,197 @@
+﻿<UserControl x:Class="SceneInspector.Panels.TexturesPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SceneInspector">
+    <DockPanel Margin="10">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock x:Name="TexSummary" DockPanel.Dock="Right" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="10,0,0,0" />
+            <ToggleButton x:Name="TexProblemsOnly" DockPanel.Dock="Right" local:Ui.Icon="&#xE7BA;" Content="Problems only" Margin="6,0,0,0"
+                          Checked="OnTexFilter" Unchecked="OnTexFilter" ToolTip="Only textures with a problem (missing, no texture coordinates, findings)" />
+            <TextBox x:Name="TexFilterBox" local:Ui.Placeholder="Filter by file, path, format, state or companion (IR)" TextChanged="OnTexFilter" KeyDown="OnTexFilterKey" />
+        </DockPanel>
+
+        <!-- selected texture: preview, facts, actions -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceAlt}" CornerRadius="5" Padding="10" Margin="0,8,0,0">
+            <DockPanel>
+                <WrapPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                    <Button x:Name="TexResizeHalf" local:Ui.Icon="&#xE73F;" Content="Resize ½" Tag="2" Click="OnTexResize" Margin="0,0,6,6"
+                            ToolTip="Write the texture at half its size when saving (the original file stays untouched)" />
+                    <Button x:Name="TexResizeQuarter" Content="¼" Tag="4" Click="OnTexResize" Margin="0,0,6,6" ToolTip="Write the texture at a quarter of its size" />
+                    <Button x:Name="TexResizeCustom" Content="Custom…" Click="OnTexResizeCustom" Margin="0,0,6,6" ToolTip="Choose the size" />
+                    <CheckBox x:Name="TexResizeClasses" Content="Resize class maps too" Margin="0,3,14,6" VerticalAlignment="Center"
+                              ToolTip="Off (default): a texture's Classes companion keeps its size and is copied as it is. On: it is resized nearest-neighbour, never filtered" />
+                    <Button x:Name="TexResetSize" local:Ui.Icon="&#xE7A7;" Content="Reset Size" Click="OnTexResetSize" Margin="0,0,14,6"
+                            ToolTip="Write the image at its own size again" />
+                    <Button x:Name="TexReplace" local:Ui.Icon="&#xE8DA;" Content="Replace File…" Click="OnTexReplace" Margin="0,0,6,6"
+                            ToolTip="Point the texture at another image file" />
+                    <Button x:Name="TexSampling" local:Ui.Icon="&#xE9E9;" Content="Sampling…" Click="OnTexSampling" Margin="0,0,6,6"
+                            ToolTip="Wrap modes, filters and anisotropy of the texture" ToolTipService.ShowOnDisabled="True" />
+                    <Button x:Name="TexRemoveUnit" local:Ui.Icon="&#xE74D;" Content="Remove Unit" Click="OnTexRemoveUnit" Margin="0,0,6,6"
+                            ToolTipService.ShowOnDisabled="True" />
+                    <Button x:Name="TexShowUsers" local:Ui.Icon="&#xE8FD;" Content="Show in Tree" Click="OnTexShowUsers" Margin="0,0,6,6"
+                            ToolTip="Select the nodes using the texture in the tree (Enter, double click)" />
+                </WrapPanel>
+                <Grid x:Name="TexPreview" DockPanel.Dock="Left" Width="112" Height="112" Margin="0,0,12,0" Visibility="Collapsed" VerticalAlignment="Top">
+                    <Border Background="{DynamicResource Window}" CornerRadius="4" />
+                    <TextBlock Text="{Binding PlaceholderGlyph}" FontFamily="{DynamicResource Font.Icons}" FontSize="32"
+                               Foreground="{Binding PlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Visibility="{Binding PlaceholderVisibility}" ToolTip="{Binding PlaceholderTip}" />
+                    <Image Source="{Binding Thumb}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                </Grid>
+                <StackPanel>
+                    <TextBlock x:Name="TexDetailTitle" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="TexDetailPath" Style="{StaticResource Muted}" FontSize="{DynamicResource Font.Small}" TextTrimming="CharacterEllipsis"
+                               Margin="0,1,0,6" />
+                    <TextBlock x:Name="TexDetailInfo" TextWrapping="Wrap" Foreground="{DynamicResource Text}" LineHeight="19" />
+                    <TextBlock x:Name="TexDetailProblems" TextWrapping="Wrap" Foreground="{DynamicResource Sev.Med}" Margin="0,6,0,0" Visibility="Collapsed" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <ListView x:Name="TexList" SelectionMode="Extended" SelectionChanged="OnTexSelect" KeyDown="OnTexKey" MouseDoubleClick="OnTexDoubleClick"
+                  GridViewColumnHeader.Click="OnTexHeaderClick" ContextMenuOpening="OnTexMenuOpening"
+                  local:Ui.EmptyText="No textures - open a scene first." local:Ui.FillLastColumn="90">
+            <ListView.ContextMenu>
+                <ContextMenu x:Name="TexMenu" />
+            </ListView.ContextMenu>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="56">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid Width="48" Height="48">
+                                            <Border Background="{DynamicResource Window}" CornerRadius="3" />
+                                            <TextBlock Text="{Binding PlaceholderGlyph}" FontFamily="{DynamicResource Font.Icons}" FontSize="18"
+                                                       Foreground="{Binding PlaceholderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Visibility="{Binding PlaceholderVisibility}" ToolTip="{Binding PlaceholderTip}" />
+                                            <Image Source="{Binding Thumb}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                                        </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="110">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="File" Tag="file" ToolTip="Image file. Click a header to sort, click again to reverse." />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding FileName}" ToolTip="{Binding FileTip}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="42">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Unit" Tag="unit" HorizontalContentAlignment="Right" ToolTip="Texture unit" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Unit}" Style="{StaticResource Num}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="80">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Size" Tag="size" HorizontalContentAlignment="Right" ToolTip="Width x height it is drawn (and written) with" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Size}" Style="{StaticResource Num}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="64">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="GPU" Tag="gpu" HorizontalContentAlignment="Right" ToolTip="GPU memory including mipmaps" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Gpu}" Style="{StaticResource Num}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="92">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="State" Tag="state" ToolTip="ok, missing, embedded, baked (made by the optimizer) or resized when saving" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Style="{StaticResource Chip}" Background="{Binding StateTint}" Margin="0,0,4,0">
+                                        <TextBlock Text="{Binding StateLabel}" Foreground="{Binding StateBrush}" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" />
+                                    </Border>
+                                    <Border Style="{StaticResource Chip}" Background="{DynamicResource Sev.Med.Tint}" Visibility="{Binding NoUvVisibility}"
+                                            ToolTip="{Binding NoUvTip}">
+                                        <TextBlock Text="no UVs" Foreground="{DynamicResource Sev.Med}" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" />
+                                    </Border>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="50">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Comp." Tag="companions"
+                                                  ToolTip="Companion images found by the naming rules (Optimize tab, e.g. IR = tree_ir.rgb next to tree.rgb): baked, resized and saved with the texture" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Chip}" Background="{DynamicResource AccentTint}" Visibility="{Binding CompanionVisibility}"
+                                        ToolTip="{Binding CompanionTip}" HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding CompanionText}" Foreground="{DynamicResource Accent}" FontSize="{DynamicResource Font.Small}" FontWeight="SemiBold" />
+                                </Border>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="54">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Users" Tag="users" HorizontalContentAlignment="Right"
+                                                  ToolTip="Nodes holding it in their own state set / geometries drawing with it" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Users}" ToolTip="{Binding UsersTip}" Style="{StaticResource Num}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="108">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Files" Tag="files" HorizontalContentAlignment="Right"
+                                                  ToolTip="In how many scene files the nodes holding it are saved" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding FilesText}" Style="{StaticResource Num}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="62">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="File Size" Tag="filebytes" HorizontalContentAlignment="Right" ToolTip="Size of the image file" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding FileSize}" Style="{StaticResource Num}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="56">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Format" Tag="format" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Format}" TextTrimming="CharacterEllipsis" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Width="88">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Wrap" Tag="wrap" ToolTip="Wrap mode S / T (default = REPEAT, not set in the file)" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Wrap}" ToolTip="{Binding SamplingTip}" TextTrimming="CharacterEllipsis"
+                                                     Foreground="{Binding WrapBrush}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <!-- takes the width the others leave (Ui.FillLastColumn) -->
+                    <GridViewColumn Width="200">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Problems" Tag="problems" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Problems}" ToolTip="{Binding Problems}" TextTrimming="CharacterEllipsis"
+                                                     Foreground="{DynamicResource TextMuted}" /></DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </DockPanel>
+</UserControl>

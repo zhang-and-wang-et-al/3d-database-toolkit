@@ -1,0 +1,15 @@
+*.bat -text
+*.sh text eol=lf
+*.command text eol=lf
+*.py text eol=lf
+*.jpg binary
+*.png binary
+*.bin binary
+
+# Left out of the public snapshot (git archive): internal notes and tooling.
+.claude/ export-ignore
+docs/DIRECTION_*.md export-ignore
+docs/TODO_*.md export-ignore
+docs/superpowers/ export-ignore
+docs/usability/ export-ignore
+docs/research/ export-ignore

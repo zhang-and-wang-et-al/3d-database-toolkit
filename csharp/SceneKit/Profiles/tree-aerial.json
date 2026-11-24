@@ -1,0 +1,12 @@
+{
+  "name": "Tree, aerial",
+  "version": 1,
+  "class": "vegetation",
+  "use": "height view",
+  "description": "Tree crowns stay closed when seen from above (flight, drone): 3 vertical cards plus 3 crown planes pictured from the top, 1024 px. Identical copies are baked once. Colour bleeds into every transparent texel (padding full). Leaf area is kept in the smaller mipmaps; coverage mips only take effect with .dds output.",
+  "select_hint": "Select the trees; copies of one tree share one atlas.",
+  "pixel_error": 6,
+  "passes": {
+    "replace_cards": { "layout": "aerial", "texture": 1024, "share": true, "padding": "full", "alpha_mips": "coverage" }
+  }
+}

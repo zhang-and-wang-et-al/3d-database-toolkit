@@ -1,0 +1,102 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!-- Dark theme: semantic colours. Everything else refers to these keys (DynamicResource), never to hex values. -->
+
+    <Color x:Key="C.Window">#1E1F22</Color>
+    <Color x:Key="C.Surface">#26282C</Color>
+    <Color x:Key="C.SurfaceAlt">#2E3035</Color>
+    <Color x:Key="C.SurfaceRaised">#34363C</Color>
+    <Color x:Key="C.Hover">#3A3D44</Color>
+    <Color x:Key="C.Pressed">#44474F</Color>
+    <Color x:Key="C.Selected">#2D4A73</Color>
+    <Color x:Key="C.SelectedInactive">#363A42</Color>
+    <Color x:Key="C.Border">#3C3F45</Color>
+    <Color x:Key="C.BorderStrong">#545861</Color>
+    <Color x:Key="C.Text">#E4E6EA</Color>
+    <Color x:Key="C.TextMuted">#9A9FA8</Color>
+    <Color x:Key="C.TextDisabled">#666A72</Color>
+    <Color x:Key="C.Accent">#4A8CFF</Color>
+    <Color x:Key="C.AccentHover">#679FFF</Color>
+    <Color x:Key="C.AccentPressed">#3A74D6</Color>
+    <Color x:Key="C.AccentText">#FFFFFF</Color>
+    <Color x:Key="C.Viewport">#2B2D31</Color>
+
+    <Color x:Key="C.Sev.High">#F26B63</Color>
+    <Color x:Key="C.Sev.Med">#F0A848</Color>
+    <Color x:Key="C.Sev.Low">#74A9FF</Color>
+    <Color x:Key="C.Sev.Info">#8C919A</Color>
+    <Color x:Key="C.Verdict.Ok">#52C483</Color>
+    <Color x:Key="C.Verdict.Check">#F0A848</Color>
+    <Color x:Key="C.Verdict.Bad">#F26B63</Color>
+    <Color x:Key="C.External">#4FC1BC</Color>
+    <Color x:Key="C.Good">#52C483</Color>
+
+    <!-- treemap fills (darker than the text colours so white labels stay readable) -->
+    <Color x:Key="Map.Background">#1E1F22</Color>
+    <Color x:Key="Map.High">#B3362E</Color>
+    <Color x:Key="Map.Med">#B8741A</Color>
+    <Color x:Key="Map.Low">#3F67A8</Color>
+    <Color x:Key="Map.None">#4F5865</Color>
+    <Color x:Key="Map.Border">#1E1F22</Color>
+    <Color x:Key="Map.Hover">#FFFFFF</Color>
+    <Color x:Key="Map.Label">#F2F3F5</Color>
+
+    <SolidColorBrush x:Key="Window" Color="{StaticResource C.Window}" />
+    <SolidColorBrush x:Key="Surface" Color="{StaticResource C.Surface}" />
+    <SolidColorBrush x:Key="SurfaceAlt" Color="{StaticResource C.SurfaceAlt}" />
+    <SolidColorBrush x:Key="SurfaceRaised" Color="{StaticResource C.SurfaceRaised}" />
+    <SolidColorBrush x:Key="Hover" Color="{StaticResource C.Hover}" />
+    <SolidColorBrush x:Key="Pressed" Color="{StaticResource C.Pressed}" />
+    <SolidColorBrush x:Key="Selected" Color="{StaticResource C.Selected}" />
+    <SolidColorBrush x:Key="SelectedInactive" Color="{StaticResource C.SelectedInactive}" />
+    <SolidColorBrush x:Key="Border" Color="{StaticResource C.Border}" />
+    <SolidColorBrush x:Key="BorderStrong" Color="{StaticResource C.BorderStrong}" />
+    <SolidColorBrush x:Key="Text" Color="{StaticResource C.Text}" />
+    <SolidColorBrush x:Key="TextMuted" Color="{StaticResource C.TextMuted}" />
+    <SolidColorBrush x:Key="TextDisabled" Color="{StaticResource C.TextDisabled}" />
+    <SolidColorBrush x:Key="Accent" Color="{StaticResource C.Accent}" />
+    <SolidColorBrush x:Key="AccentHover" Color="{StaticResource C.AccentHover}" />
+    <SolidColorBrush x:Key="AccentPressed" Color="{StaticResource C.AccentPressed}" />
+    <SolidColorBrush x:Key="AccentText" Color="{StaticResource C.AccentText}" />
+    <SolidColorBrush x:Key="AccentTint" Color="{StaticResource C.Accent}" Opacity="0.18" />
+    <SolidColorBrush x:Key="Viewport" Color="{StaticResource C.Viewport}" />
+    <SolidColorBrush x:Key="External" Color="{StaticResource C.External}" />
+    <SolidColorBrush x:Key="External.Tint" Color="{StaticResource C.External}" Opacity="0.16" />
+    <SolidColorBrush x:Key="Good" Color="{StaticResource C.Good}" />
+
+    <SolidColorBrush x:Key="Sev.High" Color="{StaticResource C.Sev.High}" />
+    <SolidColorBrush x:Key="Sev.Med" Color="{StaticResource C.Sev.Med}" />
+    <SolidColorBrush x:Key="Sev.Low" Color="{StaticResource C.Sev.Low}" />
+    <SolidColorBrush x:Key="Sev.Info" Color="{StaticResource C.Sev.Info}" />
+    <SolidColorBrush x:Key="Sev.High.Tint" Color="{StaticResource C.Sev.High}" Opacity="0.16" />
+    <SolidColorBrush x:Key="Sev.Med.Tint" Color="{StaticResource C.Sev.Med}" Opacity="0.16" />
+    <SolidColorBrush x:Key="Sev.Low.Tint" Color="{StaticResource C.Sev.Low}" Opacity="0.16" />
+    <SolidColorBrush x:Key="Sev.Info.Tint" Color="{StaticResource C.Sev.Info}" Opacity="0.16" />
+    <SolidColorBrush x:Key="Verdict.Ok" Color="{StaticResource C.Verdict.Ok}" />
+    <SolidColorBrush x:Key="Verdict.Check" Color="{StaticResource C.Verdict.Check}" />
+    <SolidColorBrush x:Key="Verdict.Bad" Color="{StaticResource C.Verdict.Bad}" />
+    <SolidColorBrush x:Key="Verdict.Ok.Tint" Color="{StaticResource C.Verdict.Ok}" Opacity="0.16" />
+    <SolidColorBrush x:Key="Verdict.Check.Tint" Color="{StaticResource C.Verdict.Check}" Opacity="0.16" />
+    <SolidColorBrush x:Key="Verdict.Bad.Tint" Color="{StaticResource C.Verdict.Bad}" Opacity="0.16" />
+
+    <!-- spacing / shape tokens -->
+    <sys:Double x:Key="Space.XS">2</sys:Double>
+    <sys:Double x:Key="Space.S">4</sys:Double>
+    <sys:Double x:Key="Space.M">8</sys:Double>
+    <sys:Double x:Key="Space.L">12</sys:Double>
+    <sys:Double x:Key="Space.XL">16</sys:Double>
+    <Thickness x:Key="Pad.Control">8,4,8,4</Thickness>
+    <Thickness x:Key="Pad.Card">12</Thickness>
+    <Thickness x:Key="Gap.Right">0,0,6,0</Thickness>
+    <Thickness x:Key="Gap.Bottom">0,0,0,8</Thickness>
+    <CornerRadius x:Key="Radius">4</CornerRadius>
+    <CornerRadius x:Key="Radius.Card">6</CornerRadius>
+    <sys:Double x:Key="Font.Body">13</sys:Double>
+    <sys:Double x:Key="Font.Small">11.5</sys:Double>
+    <sys:Double x:Key="Font.Title">15</sys:Double>
+    <sys:Double x:Key="Font.Kpi">20</sys:Double>
+    <FontFamily x:Key="Font.Ui">Segoe UI</FontFamily>
+    <FontFamily x:Key="Font.Mono">Cascadia Mono, Consolas, Courier New</FontFamily>
+    <FontFamily x:Key="Font.Icons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+</ResourceDictionary>
